@@ -1,0 +1,102 @@
+🚀 Problem Statement:
+Citizens often face challenges when updating their government-issued documents like Aadhaar, PAN, Voter ID, Driving Licence, and Ration Card. The current process is fragmented, time-consuming, and lacks digital accessibility.
+
+🎯 Objective:
+Build a secure, unified web application where:
+
+Users can log in using their Aadhaar number.
+
+Admins (e.g., government officers) log in with a specific government-issued ID.
+
+Users can view, edit, and download their core documents.
+
+Changes are categorized as Minor (e.g., address change) or Major (e.g., name, DOB).
+
+Major changes trigger an approval workflow requiring admin verification.
+
+The UI replicates the feel and seriousness of real-life government portals.
+
+📂 Key Modules & Features:
+👤 User Login:
+Login via Aadhaar Number (simulate with mock Aadhaar numbers).
+
+View profile and associated documents.
+
+Edit documents.
+
+For major edits, must provide proof via two other documents.
+
+Track status of edit requests.
+
+Download updated documents as PDFs with official-looking UI.
+
+🧑‍💼 Admin Login:
+Admin logs in using predefined government ID.
+
+View and verify user change requests.
+
+Approve or reject major changes.
+
+On approval, updates reflect across all documents.
+
+Generate audit trails for accountability.
+
+🗃️ Database (SQLite):
+Use 5 tables, one for each document:
+
+aadhaar_table
+
+pan_table
+
+voterid_table
+
+driving_license_table
+
+ration_card_table
+
+One users table for login/authentication.
+
+One change_requests table for major change tracking and reference IDs.
+
+🔄 Workflow:
+User logs in → views all documents.
+
+Clicks "Edit" on a document.
+
+Chooses type of change:
+
+Minor (address): auto-approved.
+
+Major (name, DOB, photo, etc.): needs admin verification.
+
+For major change:
+
+User uploads two other document proofs.
+
+System generates a reference ID.
+
+Admin logs in → sees all pending requests → verifies.
+
+On approval → changes synced to all relevant documents.
+
+User notified → can download updated documents.
+
+🎨 UI/UX Focus:
+Government-style layout: minimalist, authoritative fonts, badge icons.
+
+Responsive UI (works well on mobile and desktop).
+
+Use tabs or cards for each document section.
+
+Include realistic PDF downloads with logos, headers, and watermarks.
+
+Status bars or icons to show request progress (Pending, Approved, Rejected).
+
+🛠️ Tech Stack:
+Frontend: React.js / HTML + CSS + Tailwind (recommended for quick UI)
+
+Backend: Node.js / Express
+
+Database: SQLite (for lightweight local dev)
+
+PDF Generator: html-pdf or jspdf for downloadable documents  to implement this using ai at one step its becoming a very hectic task and lot od=f errors  so for now just give prompt step by step very clarly to create a frontend whare the things we can do on frontend like how to start what are the logins present and after logging in give what are the things available in  user login what are te things he can give prompt for very clearly

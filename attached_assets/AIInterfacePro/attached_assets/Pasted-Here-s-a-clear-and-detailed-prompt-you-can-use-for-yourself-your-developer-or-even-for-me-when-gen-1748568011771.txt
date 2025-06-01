@@ -1,0 +1,63 @@
+Here's a clear and detailed prompt you can use for yourself, your developer, or even for me when generating the UI:
+
+---
+
+### 💡 **Prompt: Document Update Flow — UI Design**
+
+**Objective:**
+Design a user interface where users can:
+
+1. View their personal and document details.
+2. Navigate to view individual documents (like Aadhaar, PAN, etc.).
+3. Raise a request to update any document.
+4. Provide 2 other valid documents as proof during the update request.
+
+---
+
+### 🧩 **Key Functional Requirements:**
+
+1. **User Dashboard (Landing Page)**
+
+   * Display a card/list of each document (e.g., Aadhaar, PAN, Voter ID, etc.)
+   * For each document: show basic info like document number, issue date, and current status (e.g., Verified / Needs Update).
+
+2. **View Document Details Page**
+
+   * When a user clicks on a document, navigate to a detailed view.
+   * Show full document data with metadata (e.g., name on document, number, address, etc.).
+   * Add a "Raise Update Request" button.
+
+3. **Raise Update Request Modal/Page**
+
+   * User selects the field(s) to update (e.g., name, address, etc.).
+   * Text input for new value(s).
+   * Upload input to attach **two supporting documents** (PDF or image).
+   * Optional: dropdown to select the type of each proof (e.g., PAN, Ration Card, Voter ID).
+   * Submit button triggers the request and sets the document status to "Pending Verification".
+
+4. **Admin Panel (Optional)**
+
+   * Shows list of requests.
+   * Admin can verify documents and either **Approve**, **Request Clarification**, or **Reject**.
+
+---
+
+### 🧪 **Extra Features (Optional but Valuable):**
+
+* Show document history or last updated timestamp.
+* Visual status indicators: ✅ Verified, ⏳ Pending, ❌ Rejected.
+* Confirmation modal before submitting update requests.
+* Notification system: show messages when updates are approved or rejected.
+
+---
+
+### 🎨 Design Notes:
+
+* Use clean card-based layout (Tailwind CSS recommended).
+* Tabs or side nav to switch between different document types.
+* Use modals for update requests to avoid navigating away from main page.
+* Clear error messages and upload validation.
+
+---
+
+Would you like me to generate the full HTML/React UI code for this setup next?

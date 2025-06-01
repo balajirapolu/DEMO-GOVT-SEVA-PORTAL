@@ -1,0 +1,508 @@
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
+import { 
+  LogOut, 
+  CheckCircle, 
+  XCircle, 
+  Eye, 
+  Users, 
+  FileText, 
+  Clock,
+  CreditCard,
+  Vote,
+  Car,
+  ShoppingCart,
+  User,
+  Phone,
+  MapPin,
+  Calendar,
+  Download,
+  Search
+} from "lucide-react";
+import Header from "@/components/Header";
+
+export default function AdminPanel() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [documentsModalOpen, setDocumentsModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [comments, setComments] = useState("");
+  const [userDocuments, setUserDocuments] = useState<any>(null);
+
+  // Function to fetch user documents
+  const fetchUserDocuments = async (userId: number) => {
+    try {
+      const response = await apiRequest("GET", `/api/admin/users/${userId}/documents`);
+      const data = await response.json();
+      setUserDocuments(data);
+      return data;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch user documents",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleViewUserDocuments = async (request: any) => {
+    setSelectedUser({
+      id: request.userId,
+      name: request.userName || `User ${request.userId}`,
+      request: request
+    });
+    await fetchUserDocuments(request.userId);
+    setDocumentsModalOpen(true);
+  };
+
+  const getDocumentIcon = (type: string) => {
+    switch (type) {
+      case 'aadhaar': return CreditCard;
+      case 'pan': return FileText;
+      case 'voterId': return Vote;
+      case 'drivingLicense': return Car;
+      case 'rationCard': return ShoppingCart;
+      default: return FileText;
+    }
+  };
+
+  const getDocumentDisplayName = (type: string) => {
+    switch (type) {
+      case 'aadhaar': return 'Aadhaar Card';
+      case 'pan': return 'PAN Card';
+      case 'voterId': return 'Voter ID';
+      case 'drivingLicense': return 'Driving License';
+      case 'rationCard': return 'Ration Card';
+      default: return type;
+    }
+  };
+
+  const { data: authData } = useQuery({
+    queryKey: ["/api/auth/me"],
+  });
+
+  const { data: requests, isLoading, refetch } = useQuery({
+    queryKey: ["/api/admin/change-requests"],
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: async ({ id, comments }: { id: number; comments: string }) => {
+      const response = await apiRequest("POST", `/api/admin/change-requests/${id}/approve`, { comments });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Request Approved & Documents Updated",
+        description: "The change request has been approved and all user documents have been synchronized.",
+      });
+      refetch();
+      setReviewModalOpen(false);
+      setComments("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to approve request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: async ({ id, comments }: { id: number; comments: string }) => {
+      const response = await apiRequest("POST", `/api/admin/change-requests/${id}/reject`, { comments });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Request Rejected",
+        description: "The change request has been rejected.",
+      });
+      refetch();
+      setReviewModalOpen(false);
+      setComments("");
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to reject request. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleLogout = async () => {
+    try {
+      await apiRequest("POST", "/api/auth/logout");
+      queryClient.clear();
+      setLocation("/");
+      toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to logout. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleReviewRequest = (request: any) => {
+    setSelectedRequest(request);
+    setComments("");
+    setReviewModalOpen(true);
+  };
+
+  const handleApprove = (request: any) => {
+    approveMutation.mutate({ id: request.id, comments });
+  };
+
+  const handleReject = (request: any) => {
+    if (!comments.trim()) {
+      toast({
+        title: "Comments Required",
+        description: "Please provide comments when rejecting a request.",
+        variant: "destructive",
+      });
+      return;
+    }
+    rejectMutation.mutate({ id: request.id, comments });
+  };
+
+  const getDocumentDisplayName = (type: string) => {
+    const names: { [key: string]: string } = {
+      aadhaar: "Aadhaar Card",
+      pan: "PAN Card",
+      voterId: "Voter ID Card",
+      drivingLicense: "Driving License",
+      rationCard: "Ration Card",
+    };
+    return names[type] || type;
+  };
+
+  const getChangeTypeColor = (type: string) => {
+    return type === "major" ? "bg-orange-100 text-orange-800" : "bg-green-100 text-green-800";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="government-header text-white p-4">
+          <div className="container mx-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                  👨‍💼
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold">Admin Panel</h1>
+                  <p className="text-sm opacity-90">Document Change Request Management</p>
+                </div>
+              </div>
+              <Skeleton className="w-32 h-10" />
+            </div>
+          </div>
+        </header>
+        
+        <main className="container mx-auto p-6">
+          <div className="mb-8">
+            <Skeleton className="h-8 w-64 mb-2" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
+  const pendingCount = requests?.length || 0;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="government-header text-white p-4">
+        <div className="container mx-auto">
+          <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-lg">
+                👨‍💼
+              </div>
+              <div>
+                <h1 className="text-xl font-bold">Admin Panel</h1>
+                <p className="text-sm opacity-90">Document Change Request Management</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4 text-sm">
+              <span>{authData?.admin?.name}</span>
+              <span className="opacity-70">|</span>
+              <span className="opacity-90">{authData?.admin?.employeeId}</span>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleLogout}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Logout
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto p-6">
+        <div className="mb-8">
+          <h2 className="text-3xl font-bold text-foreground mb-2">Change Requests</h2>
+          <p className="text-muted-foreground">Review and approve document update requests</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{pendingCount}</p>
+                  <p className="text-sm text-muted-foreground">Pending Requests</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                  <FileText className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">5</p>
+                  <p className="text-sm text-muted-foreground">Document Types</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">1</p>
+                  <p className="text-sm text-muted-foreground">Active Users</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Pending Change Requests
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {requests && requests.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Request ID</TableHead>
+                    <TableHead>User</TableHead>
+                    <TableHead>Document</TableHead>
+                    <TableHead>Change Type</TableHead>
+                    <TableHead>Field</TableHead>
+                    <TableHead>Submitted</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {requests.map((request: any) => (
+                    <TableRow key={request.id}>
+                      <TableCell className="font-mono text-sm">
+                        {request.referenceId}
+                      </TableCell>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{request.userName}</p>
+                          <p className="text-sm text-muted-foreground">
+                            ****-****-{request.userAadhaar?.slice(-4)}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>{getDocumentDisplayName(request.documentType)}</TableCell>
+                      <TableCell>
+                        <Badge className={getChangeTypeColor(request.changeType)}>
+                          {request.changeType.toUpperCase()}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="capitalize">{request.fieldToUpdate}</TableCell>
+                      <TableCell>
+                        {new Date(request.submittedAt).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReviewRequest(request)}
+                          >
+                            <Eye className="w-4 h-4 mr-1" />
+                            Review
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="text-center py-12">
+                <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-medium text-muted-foreground">No pending requests</p>
+                <p className="text-sm text-muted-foreground">All change requests have been processed.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </main>
+
+      <Dialog open={reviewModalOpen} onOpenChange={setReviewModalOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Review Change Request</DialogTitle>
+          </DialogHeader>
+          
+          {selectedRequest && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Request ID</Label>
+                  <p className="font-mono text-sm">{selectedRequest.referenceId}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">User</Label>
+                  <p>{selectedRequest.userName}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Document Type</Label>
+                  <p>{getDocumentDisplayName(selectedRequest.documentType)}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Change Type</Label>
+                  <Badge className={getChangeTypeColor(selectedRequest.changeType)}>
+                    {selectedRequest.changeType.toUpperCase()}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Field to Update</Label>
+                  <p className="capitalize">{selectedRequest.fieldToUpdate}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Submitted</Label>
+                  <p>{new Date(selectedRequest.submittedAt).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Change Details</Label>
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-xs text-muted-foreground">Current Value</Label>
+                      <p className="font-medium">{selectedRequest.oldValue || "N/A"}</p>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground">New Value</Label>
+                      <p className="font-medium">{selectedRequest.newValue}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedRequest.supportingDocuments && selectedRequest.supportingDocuments.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Supporting Documents</Label>
+                  <div className="space-y-2">
+                    {selectedRequest.supportingDocuments.map((doc: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded">
+                        <FileText className="w-4 h-4" />
+                        <span className="text-sm">{doc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="comments">Comments (Optional)</Label>
+                <Textarea
+                  id="comments"
+                  placeholder="Add any comments or feedback..."
+                  value={comments}
+                  onChange={(e) => setComments(e.target.value)}
+                  rows={3}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button
+                  className="flex-1"
+                  onClick={() => handleApprove(selectedRequest)}
+                  disabled={approveMutation.isPending}
+                >
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  {approveMutation.isPending ? "Approving..." : "Approve"}
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => handleReject(selectedRequest)}
+                  disabled={rejectMutation.isPending}
+                >
+                  <XCircle className="w-4 h-4 mr-2" />
+                  {rejectMutation.isPending ? "Rejecting..." : "Reject"}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
