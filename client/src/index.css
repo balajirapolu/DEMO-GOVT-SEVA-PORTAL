@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 240 10% 98%; /* #F8FAFC */
+  --foreground: 220 14% 11%; /* #1E293B */
+  --muted: 210 40% 98%; /* #F1F5F9 */
+  --muted-foreground: 215 16% 47%; /* #64748B */
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 14% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 14% 11%;
+  --border: 220 13% 91%; /* #E2E8F0 */
+  --input: 220 13% 91%;
+  --primary: 221 83% 53%; /* #1E40AF */
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 98%;
+  --secondary-foreground: 222 84% 5%;
+  --accent: 210 40% 98%;
+  --accent-foreground: 222 84% 5%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 221 83% 53%;
+  --radius: 0.5rem;
+  
+  /* Government specific colors */
+  --government-blue: 221 83% 53%; /* #1E40AF */
+  --government-blue-dark: 221 83% 45%; /* #1D4ED8 */
+  --government-light-blue: 214 95% 93%; /* #EFF6FF */
+  --status-verified: 142 76% 36%; /* #059669 */
+  --status-verified-bg: 138 76% 97%; /* #DCFCE7 */
+  --status-pending: 45 93% 47%; /* #D97706 */
+  --status-pending-bg: 48 96% 89%; /* #FEF3C7 */
+  --status-rejected: 0 84% 60%; /* #DC2626 */
+  --status-rejected-bg: 0 93% 94%; /* #FEE2E2 */
+}
+
+.dark {
+  --background: 222 84% 5%;
+  --foreground: 210 40% 98%;
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+  --popover: 222 84% 5%;
+  --popover-foreground: 210 40% 98%;
+  --card: 222 84% 5%;
+  --card-foreground: 210 40% 98%;
+  --border: 217 33% 17%;
+  --input: 217 33% 17%;
+  --primary: 221 83% 53%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+  --accent: 217 33% 17%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 221 83% 53%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Government Portal Specific Styles */
+  .government-header {
+    background: linear-gradient(135deg, hsl(var(--government-blue)) 0%, hsl(var(--government-blue-dark)) 100%);
+  }
+
+  .government-card {
+    @apply bg-card border border-border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide;
+  }
+
+  .status-verified {
+    background-color: hsl(var(--status-verified-bg));
+    color: hsl(var(--status-verified));
+  }
+
+  .status-pending {
+    background-color: hsl(var(--status-pending-bg));
+    color: hsl(var(--status-pending));
+  }
+
+  .status-rejected {
+    background-color: hsl(var(--status-rejected-bg));
+    color: hsl(var(--status-rejected));
+  }
+
+  .government-button {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors duration-200;
+  }
+
+  .file-upload-area {
+    @apply border-2 border-dashed border-border hover:border-primary bg-muted/30 hover:bg-primary/5 transition-colors duration-200 rounded-lg p-8 text-center cursor-pointer;
+  }
+
+  .document-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6;
+  }
+
+  .info-row {
+    @apply flex justify-between py-2 border-b border-border/50 last:border-b-0;
+  }
+
+  .info-label {
+    @apply text-muted-foreground font-medium;
+  }
+
+  .info-value {
+    @apply text-foreground font-semibold;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/50 backdrop-blur-sm z-50;
+  }
+
+  /* Loading states */
+  .loading-card {
+    @apply animate-pulse bg-muted rounded-lg;
+  }
+
+  /* Form styles */
+  .form-section {
+    @apply space-y-4 p-6 border border-border rounded-lg bg-card;
+  }
+
+  .form-section-title {
+    @apply text-lg font-semibold text-foreground mb-4 pb-2 border-b border-border;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .document-grid {
+      @apply grid-cols-1;
+    }
+    
+    .info-row {
+      @apply flex-col space-y-1 text-left;
+    }
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground));
+}
